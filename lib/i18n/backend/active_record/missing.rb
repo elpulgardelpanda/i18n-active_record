@@ -55,13 +55,6 @@ module I18n
           end
         end
 
-        def store_if_not_exists(locale, key, interpolations, count)
-          unless ActiveRecord::Translation.locale(locale).lookup(key).exists?
-            keys = count ? get_plurals(locale).map { |k| [key, k].join(FLATTEN_SEPARATOR) } : [key]
-            keys.each { |key| store_default_translation(locale, key, interpolations) }
-          end
-        end
-
         def store_default_translation(locale, key, interpolations)
           translation = ActiveRecord::Translation.new :locale => locale.to_s, :key => key
           translation.interpolations = interpolations
@@ -75,6 +68,14 @@ module I18n
         end
 
         private
+
+          def store_if_not_exists(locale, key, interpolations, count)
+            unless ActiveRecord::Translation.locale(locale).lookup(key).exists?
+              keys = count ? get_plurals(locale).map { |k| [key, k].join(FLATTEN_SEPARATOR) } : [key]
+              keys.each { |key| store_default_translation(locale, key, interpolations) }
+            end
+          end
+
           # get plural rules or use English rules as default:
           def get_plurals(locale)
             plurals = I18n.t('i18n.plural.keys', :locale => locale)
