@@ -41,6 +41,11 @@ module I18n
           key = normalize_flat_keys(locale, key, scope, separator)
           interpolations = options.keys - I18n::RESERVED_KEYS
 
+          # if already memoized, then a record already exists.
+          if @memoized_lookup and @memoized_lookup[locale.to_sym].keys.include? key.to_sym
+            return
+          end
+
           if I18n::available_locales.any?
             I18n::available_locales.each do |a_locale|
               store_if_not_exists(a_locale, key, interpolations, count)
