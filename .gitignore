@@ -1,1 +1,4 @@
 ci/.bundle/*
+*.gem
+*.orig
+.ruby-version
