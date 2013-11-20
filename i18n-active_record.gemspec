@@ -4,7 +4,7 @@ $:.unshift File.expand_path('../lib', __FILE__)
 require 'i18n/active_record/version'
 
 Gem::Specification.new do |s|
-  s.name         = "i18n-active_record"
+  s.name         = "chipairon-i18n-active_record"
   s.version      = I18n::ActiveRecord::VERSION
   s.authors      = ["Sven Fuchs"]
   s.email        = "svenfuchs@artweb-design.de"
