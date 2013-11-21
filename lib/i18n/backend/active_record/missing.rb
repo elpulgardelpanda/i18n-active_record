@@ -41,23 +41,23 @@ module I18n
           key = normalize_flat_keys(locale, key, scope, separator)
           interpolations = options.keys - I18n::RESERVED_KEYS
 
-          # if already memoized, then a record already exists.
-          if @memoized_lookup and @memoized_lookup[locale.to_sym].keys.include? key.to_sym
-            return
-          end
-
-          if I18n::available_locales.any?
-            I18n::available_locales.each do |a_locale|
-              store_if_not_exists(a_locale, key, interpolations, count)
+          unless ActiveRecord::Translation.locale(locale).lookup(key).exists?
+            if I18n::available_locales.any?
+              I18n::available_locales.each do |a_locale|
+                store_if_not_exists(a_locale, key, interpolations, count)
+              end
+            else
+              store_if_not_exists(locale, key, interpolations, count)
             end
-          else
-            store_if_not_exists(locale, key, interpolations, count)
+            # if memoization is included, this refreshes the hash to get new values just stored                                                                                                                     
+            try(:reload!)
           end
         end
 
         def store_default_translation(locale, key, interpolations)
           translation = ActiveRecord::Translation.new :locale => locale.to_s, :key => key
           translation.interpolations = interpolations
+          translation.value = get_value_from_simple_backend(locale, key)
           translation.save
         end
 
@@ -84,6 +84,18 @@ module I18n
               plurals = [:zero, :one, :other]
             end
             plurals
+          end
+
+        private
+          # Check if this backend is chainning with simple
+          # then try to get value from its hash.
+          def get_value_from_simple_backend(locale, key)
+            if I18n.backend.class == Chain &&
+              I18n.backend.backends.last.class == Simple
+              I18n.backend.backends.last.send(:lookup, locale, key)
+            else
+              nil
+            end
           end
       end
     end
