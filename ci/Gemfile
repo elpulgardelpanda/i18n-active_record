@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'i18n', '~> 0.6'
+gem 'i18n', github: 'elpulgardelpanda/i18n', tag: 'v.0.6.5.panda.0.0.3'
 
 # parseTree is dead, use this 3 instead for storing procs:
 gem 'sourcify'
