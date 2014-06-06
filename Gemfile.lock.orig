@@ -14,6 +14,7 @@ GEM
       multi_json (~> 1.0)
     arel (3.0.3)
     builder (3.0.4)
+<<<<<<< HEAD
     file-tail (1.0.12)
       tins (~> 0.5)
     i18n (0.6.9)
@@ -35,6 +36,15 @@ GEM
     sqlite3 (1.3.9)
     test_declarative (0.0.5)
     tins (0.13.2)
+=======
+    i18n (0.6.9)
+    metaclass (0.0.4)
+    mocha (1.0.0)
+      metaclass (~> 0.0.1)
+    multi_json (1.9.2)
+    sqlite3 (1.3.9)
+    test_declarative (0.0.5)
+>>>>>>> master
     tzinfo (0.3.39)
 
 PLATFORMS
@@ -43,10 +53,15 @@ PLATFORMS
 DEPENDENCIES
   activerecord (~> 3.x)
   activesupport (~> 3.x)
+<<<<<<< HEAD
   file-tail
   i18n (~> 0.6)
   mocha (= 0.9.9)
   ruby_parser
   sourcify
+=======
+  i18n
+  mocha
+>>>>>>> master
   sqlite3
   test_declarative
