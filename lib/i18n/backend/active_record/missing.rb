@@ -30,65 +30,82 @@
 #  It will also persist interpolation keys in Translation#interpolations so
 #  translators will be able to review and use them.
 module I18n
-
-  # This ExceptionHandler is needed to be able to store translations when they are missing on lookup.
-  # In the initializer, when the backend chain is setup, this has to be called:
-  #     I18n.exception_handler = I18n::StoreMissingLookupExceptionHandler.new
-  class StoreMissingLookupExceptionHandler < ExceptionHandler
-    def call(exception, locale, key, options)
-      if exception.is_a?(MissingTranslation)
-        back_end = find_backend_implementing_store
-        if back_end
-          back_end.store_default_translations(locale, key, options)
-        end
-      end
-      super
-    end
-    def find_backend_implementing_store
-      options = []
-      if I18n.backend.class == I18n::Backend::Chain
-        options = I18n.backend.backends
-      else
-        options = [I18n.backend]
-      end
-      options.each do |be|
-        if be.respond_to?(:store_default_translations)
-          return be
-        end
-      end
-      nil
-    end
-  end
-
   module Backend
     class ActiveRecord
       module Missing
         include Flatten
 
         def store_default_translations(locale, key, options = {})
-          count, scope, _, separator = options.values_at(:count, :scope, :default, :separator)
+          count, scope, default_value, separator = options.values_at(:count, :scope, :default, :separator)
           separator ||= I18n.default_separator
           key = normalize_flat_keys(locale, key, scope, separator)
 
           unless ActiveRecord::Translation.locale(locale).lookup(key).exists?
             interpolations = options.keys - I18n::RESERVED_KEYS
             keys = count ? I18n.t('i18n.plural.keys', :locale => locale).map { |k| [key, k].join(FLATTEN_SEPARATOR) } : [key]
-            keys.each { |the_key| store_default_translation(locale, the_key, interpolations) }
+            keys.each { |the_key| store_default_translation(locale, the_key, interpolations, default_value) }
           end
         end
 
-        def store_default_translation(locale, key, interpolations)
-          translation = ActiveRecord::Translation.new :locale => locale.to_s, :key => key
+        def store_default_translation(locale, key, interpolations, default_value)
+          translation = ActiveRecord::Translation.new :locale => locale.to_s, :key => key, :value => default_value
           translation.interpolations = interpolations
           translation.save
+          I18n.backend.reload! #invalidate cache
         end
 
-        def translate(locale, key, options = {})
-          super
-        rescue I18n::MissingTranslationData => e
-          self.store_default_translations(locale, key, options)
-          raise e
+        module ::I18n
+          module Backend
+            class Chain
+              module Implementation
+
+                # This is the entry point to make the translation.
+                # We need to override this method to store missing translations:
+                # 1st backend is AR, if it misses then we want to store the translation
+                # as missed, but if there is a default value or it is translated in other
+                # backend, we want to store that value, instead of nil.
+                def translate(locale, key, default_options = {})
+                  namespace = nil
+                  options = default_options
+                  final_translation = nil
+                  should_store_in_db = false
+
+                  backends.each do |backend|
+                    catched_value = catch(:exception) do
+                      translation = backend.translate(locale, key, options)
+                      if namespace_lookup?(translation, options)
+                        namespace = translation.merge(namespace || {})
+                      elsif !translation.nil?
+                        final_translation = translation
+                        break
+                      end
+                    end
+                    if catched_value.class == MissingTranslation
+                      should_store_in_db = true
+                    end
+                    if final_translation != nil
+                      break
+                    end
+                  end
+
+                  if final_translation.nil?
+                    final_translation = namespace
+                  end
+
+                  if should_store_in_db
+                    I18n.backend.backends.first.store_default_translations(locale, key, default_options)
+                  end
+
+                  return final_translation unless final_translation.nil?
+                  throw(:exception, I18n::MissingTranslation.new(locale, key, options))
+                end
+
+              end
+            end
+          end
         end
+
+
       end
     end
   end
