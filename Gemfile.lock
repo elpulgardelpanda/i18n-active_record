@@ -1,9 +1,9 @@
 GIT
-  remote: git://github.com/elpulgardelpanda/i18n.git
-  revision: b5ef1d959ff92df6e815f12e529d518033a30a5e
-  tag: v.0.6.5.panda.0.0.3
+  remote: git@github.com:elpulgardelpanda/i18n.git
+  revision: 3904f4c36149a8d0054535c9bd12752c240c65f8
+  branch: dont-store-tr-for-locales-not-set-as-available
   specs:
-    i18n (0.6.5)
+    i18n (0.6.10)
 
 GEM
   remote: https://rubygems.org/

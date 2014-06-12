@@ -72,11 +72,19 @@ module I18n
 
                   backends.each do |backend|
                     catched_value = catch(:exception) do
+                      if backend == backends.last
+                        # for the last backend, but back the default value if it exists
+                        options = default_options
+                      end
                       translation = backend.translate(locale, key, options)
                       if namespace_lookup?(translation, options)
                         namespace = translation.merge(namespace || {})
                       elsif !translation.nil?
-                        final_translation = translation
+                        if options[:default].present?
+                          final_translation = default(locale, key, translation, options)
+                        else
+                          final_translation = translation
+                        end
                         break
                       end
                     end

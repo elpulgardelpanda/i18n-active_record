@@ -27,6 +27,23 @@ module I18n
           end
         end
 
+        def translate(locale, key, options = {})
+          raise InvalidLocale.new(locale) unless locale
+          entry = key && lookup(locale, key, options[:scope], options)
+
+          entry = resolve(locale, key, entry, options.except(:default))
+          count = options[:count]
+          values = options.except(*RESERVED_KEYS)
+
+          throw(:exception, I18n::MissingTranslation.new(locale, key, options)) if entry.nil?
+
+          entry = entry.dup if entry.is_a?(String)
+
+          entry = pluralize(locale, entry, count) if count
+          entry = interpolate(locale, entry, values) if values
+          entry
+        end
+
       protected
 
         def lookup(locale, key, scope = [], options = {})
@@ -36,7 +53,11 @@ module I18n
           if result.empty?
             nil
           elsif result.first.key == key
-            result.first.value
+            if options[:default] and result.first.value == options[:default]
+              return default(locale, key, result.first.value)
+            else
+              return result.first.value
+            end
           else
             chop_range = (key.size + FLATTEN_SEPARATOR.size)..-1
             result = result.inject({}) do |hash, r|

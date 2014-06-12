@@ -1,9 +1,8 @@
 require File.expand_path('../test_helper', __FILE__)
-
-class I18nBackendActiveRecordTest < Minitest::Test
+class I18nBackendActiveRecordTest < Test::Unit::TestCase
   def setup
     I18n.backend = I18n::Backend::ActiveRecord.new
-    store_translations(:en, :foo => { :bar => 'bar', :baz => 'baz' })
+    I18n.backend.store_translations(:en, :foo => { :bar => 'bar', :baz => 'baz' })
   end
 
   def teardown
@@ -40,15 +39,9 @@ class I18nBackendActiveRecordTest < Minitest::Test
     assert_equal "Pagina's", I18n.t(:"Pagina's", :locale => :es)
   end
 
-  with_mocha do
-    test "missing translations table does not cause an error in #available_locales" do
-      I18n::Backend::ActiveRecord::Translation.expects(:available_locales).raises(::ActiveRecord::StatementInvalid)
-      assert_equal [], I18n.backend.available_locales
-    end
-  end
-
   def test_expand_keys
     assert_equal %w(foo foo.bar foo.bar.baz), I18n.backend.send(:expand_keys, :'foo.bar.baz')
   end
+
 end if defined?(ActiveRecord)
 

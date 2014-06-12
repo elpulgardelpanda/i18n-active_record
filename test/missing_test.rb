@@ -70,5 +70,19 @@ class I18nActiveRecordMissingTest < Test::Unit::TestCase
     assert_equal 'baz!', I18n.t(key, :separator => '|')
   end
 
+  test "defaults: it has to store the default array, but return the resolved default. Also when it is memoized." do
+    # First time, it is not found in bd -> it is stored
+    assert_equal 'Not here', I18n.t(:missing, default: [:also_missing, 'Not here'])
+    # Second time it is found in bd, and it has to resolve the default. As a side effect, the resolved value is now memoized
+    assert_equal 'Not here', I18n.t(:missing, default: [:also_missing, 'Not here'])
+    # Third time just returns memoized value, without going to bd.
+    assert_equal 'Not here', I18n.t(:missing, default: [:also_missing, 'Not here'])
+
+    # If later on, the 'also_missing' key is translated (and then not missing anymore),
+    # the translation should return the value associated with the key 'also_missing'
+    I18n.backend.store_translations(:en, :also_missing => 'I have a new value')
+    assert_equal 'I have a new value', I18n.t(:missing, default: [:also_missing, 'Not here'])
+  end
+
 end if defined?(ActiveRecord)
 
