@@ -7,7 +7,7 @@ class I18nActiveRecordMissingTest < Test::Unit::TestCase
   end
 
   def setup
-    I18n.backend = I18n::Backend::Chain.new(I18n::Backend::ActiveRecord.new, I18n::Backend::Simple.new)
+    I18n.backend = I18n::Backend::Chain.new(Backend.new, I18n::Backend::Simple.new)
     I18n::Backend::ActiveRecord::Translation.delete_all
     I18n.backend.store_translations(:en, :bar => 'Bar', :i18n => { :plural => { :keys => [:zero, :one, :other] } })
   end

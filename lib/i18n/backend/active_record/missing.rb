@@ -101,6 +101,7 @@ module I18n
                   end
 
                   if should_store_in_db
+                    default_options[:default] ||= I18n.backend.backends.last.send(:lookup, locale, key)
                     I18n.backend.backends.first.store_default_translations(locale, key, default_options)
                   end
 
