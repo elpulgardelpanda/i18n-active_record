@@ -75,6 +75,24 @@ module I18n
           def available_locales
             Translation.select(:locale).uniq.map { |t| t.locale.to_sym }
           end
+
+          # Exports all migrations to an yml file
+          def export_to_yml
+            file_name = Time.now.utc.strftime("%Y%m%d%H%M%S").to_s + "_i18ntr_table.yml"
+            File.open(Rails.root.join(file_name), 'w') do |file|
+              available_locales.each do |locale|
+                file.puts "#{locale}:"
+                where(locale: locale).order("id asc").find_each do |tt|
+                  if tt.value.class == String
+                    tt.value = "\"#{tt.value}\""
+                  elsif tt.value.class == NilClass
+                    tt.value = "nil"
+                  end
+                  file.puts "  #{tt.key}: #{tt.value}"
+                end
+              end
+            end
+          end
         end
 
         def interpolates?(key)

@@ -45,6 +45,12 @@ class I18nActiveRecordMissingTest < Test::Unit::TestCase
     assert_equal 3, translations.length
   end
 
+  test "can work with pl" do
+    I18n.backend.store_translations(:en, :email => { :one => "You have an email", :other => "You have %{count} emails" } )
+    assert_equal "You have an email", I18n.t('email', :count => 1)
+    assert_equal "You have 3 emails", I18n.t('email', :count => 3)
+  end
+
   test "creates no stub for base key in pluralization" do
     I18n.t('foo', :count => 999)
     assert_equal 3, I18n::Backend::ActiveRecord::Translation.locale(:en).lookup("foo").count

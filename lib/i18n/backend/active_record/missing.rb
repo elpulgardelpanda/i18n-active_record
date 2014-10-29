@@ -100,13 +100,21 @@ module I18n
                     final_translation = namespace
                   end
 
-                  if should_store_in_db
+                  if should_store_in_db and !key.to_s.include?("i18n.plural.rule")
                     default_options[:default] ||= I18n.backend.backends.last.send(:lookup, locale, key)
                     I18n.backend.backends.first.store_default_translations(locale, key, default_options)
                   end
 
-                  return final_translation unless final_translation.nil?
-                  throw(:exception, I18n::MissingTranslation.new(locale, key, options))
+                  throw(:exception, I18n::MissingTranslation.new(locale, key, options)) if final_translation.nil?
+
+                  final_translation = final_translation.dup if final_translation.is_a?(String)
+
+                  final_translation = pluralize(locale, final_translation, options[:count]) if options[:count]
+
+                  values = options.except(*RESERVED_KEYS)
+                  final_translation = interpolate(locale, final_translation, values) if values
+
+                  final_translation
                 end
 
               end

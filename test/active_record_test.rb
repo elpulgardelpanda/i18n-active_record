@@ -39,6 +39,16 @@ class I18nBackendActiveRecordTest < Test::Unit::TestCase
     assert_equal "Pagina's", I18n.t(:"Pagina's", :locale => :es)
   end
 
+  test "stores translations in all languages if the instance for the language does not exist" do
+    I18n::Backend::ActiveRecord::Translation.delete_all
+    # add 2 translations in different locales so available_locales = 2
+    I18n.backend.store_translations(:en, :foo => 'foo')
+    I18n.backend.store_translations(:es, :lala => 'foo')
+
+    I18n.backend.store_translations(:es, :hum => "la")
+    assert_equal 2, I18n::Backend::ActiveRecord::Translation.where(key: :hum).count
+  end
+
   def test_expand_keys
     assert_equal %w(foo foo.bar foo.bar.baz), I18n.backend.send(:expand_keys, :'foo.bar.baz')
   end

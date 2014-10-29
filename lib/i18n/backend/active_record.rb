@@ -24,6 +24,12 @@ module I18n
           flatten_translations(locale, data, escape, false).each do |key, value|
             Translation.locale(locale).lookup(expand_keys(key)).delete_all
             Translation.create(:locale => locale.to_s, :key => key.to_s, :value => value)
+            available_locales.each do |a_locale|
+              next if a_locale == locale
+              if Translation.where(:locale => a_locale.to_s, :key => key.to_s).empty?
+                Translation.create(:locale => a_locale.to_s, :key => key.to_s, :value => value)
+              end
+            end
           end
         end
 
