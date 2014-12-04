@@ -46,6 +46,11 @@ module I18n
     #   # => 'FOO'
     class ActiveRecord
       class Translation < ::ActiveRecord::Base
+
+        if defined?(ProtectedAttributes)
+          attr_accessible :key,:locale,:value
+        end
+
         TRUTHY_CHAR = "\001"
         FALSY_CHAR = "\002"
 
