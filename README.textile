@@ -15,7 +15,7 @@ For Bundler put the following in your Gemfile:
 </pre>
 
 Next create an active record model named @Translation@ with the Rails Generator.
-Your migration should look like this:
+Edit the resulting migration file so that it looks like this:
 
 <pre>
   class CreateTranslations < ActiveRecord::Migration
@@ -47,15 +47,11 @@ A simple configuration for your i18n_backend.rb file could look like this:
 <pre>
   if ActiveRecord::Base.connection.table_exists? 'translations'
     require 'i18n/backend/active_record'
-    #Use database, otherwise fall back to yml file.
-    I18n.backend = I18n::Backend::Chain.
-    new(I18n::Backend::ActiveRecord.new, I18n.backend)
+    I18n.backend = I18n::Backend::Chain.new(I18n::Backend::ActiveRecord.new, I18n.backend)
   end
 </pre>
 
 
 h2. Usage
 
-You can now use @I18n.t('Your String')@ to lookup translations in the database.
-
-
+You can now use @I18n.t('Your String')@ to lookup translations in the database. If a translation cannot be found there it will fall back to the YML file.
